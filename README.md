@@ -51,7 +51,7 @@ Le projet est organisé selon l'architecture **MVC Laravel** :
 1. Cloner le projet :
 
 ```bash
-git clone https://github.com/ton-repo/aide-sociale-locale.git
+git clone https://github.com/kamikael/aide-sociale-locale.git
 cd aide-sociale-locale
 Installer les dépendances Laravel :
 
