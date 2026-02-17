@@ -15,12 +15,7 @@ return new class extends Migration {
 
         $table->primary(['id_utilisateur', 'id_role']);
 
-
-        $table->foreign('id_utilisateur')
-            ->references('id_utilisateur')
-            ->on('utilisateurs')
-            ->onDelete('cascade');
-
+        // FK vers utilisateurs ajoutée dans une migration ultérieure (après create_utilisateurs)
         $table->foreign('id_role')
               ->references('id_role')
               ->on('roles')
