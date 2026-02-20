@@ -11,7 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+      $middleware->alias([
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class, 
+         'role' => \App\Http\Middleware\RoleMiddleware::class,
+    'active' => \App\Http\Middleware\EnsureAccountIsActive::class,
+    'organisateur.validated' => \App\Http\Middleware\EnsureOrganisateurValidated::class,
+    'fedapay.webhook' => \App\Http\Middleware\VerifyFedaPayWebhook::class,
+]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

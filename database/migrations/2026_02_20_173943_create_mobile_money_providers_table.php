@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('utilisateurs', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        Schema::create('mobile_money_providers', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('api_base_url')->nullable();
+    $table->timestamps();
+});
+
     }
 
     /**
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('utilisateurs');
+        Schema::dropIfExists('mobile_money_providers');
     }
 };
