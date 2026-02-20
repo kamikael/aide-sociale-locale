@@ -1,7 +1,13 @@
-<?php
+use App\Http\Controllers\Frontend\CagnotteController;
+use App\Http\Controllers\Frontend\DonateurController;
+use App\Http\Controllers\Frontend\DonationController;
 
-use Illuminate\Support\Facades\Route;
+Route::get('/', [CagnotteController::class, 'index']);
+Route::get('/cagnottes', [CagnotteController::class, 'index']);
+Route::get('/cagnottes/{id}', [CagnotteController::class, 'show']);
 
-Route::get('/', function () {
-    return view('welcome');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DonateurController::class, 'dashboard']);
+    Route::get('/historique', [DonateurController::class, 'historique']);
+    Route::post('/donation', [DonationController::class, 'store']);
 });
