@@ -50,4 +50,29 @@ class DonFlowTest extends TestCase
             'amount' => 1000,
         ]);
     }
+
+    public function test_admin_can_validate_organisateur()
+{
+    $roleAdmin = Role::factory()->create(['name' => 'admin']);
+    $roleOrg = Role::factory()->create(['name' => 'organisateur']);
+
+    $admin = User::factory()->create([
+        'role_id' => $roleAdmin->id,
+        'status' => 'active',
+    ]);
+
+    $organisateur = User::factory()->create([
+        'role_id' => $roleOrg->id,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($admin)
+        ->post("/admin/organisateurs/{$organisateur->id}/approve");
+
+    $this->assertDatabaseHas('users', [
+        'id' => $organisateur->id,
+        'status' => 'active',
+    ]);
+}
+
 }
