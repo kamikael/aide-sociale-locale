@@ -1,10 +1,5 @@
-<?php
+@extends('layouts.app')
 
-namespace Tests;
-
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-
-abstract class TestCase extends BaseTestCase
-{
-    //
-}
+@section('content')
+    <h1>Ça fonctionne 🎉</h1>
+@endsection

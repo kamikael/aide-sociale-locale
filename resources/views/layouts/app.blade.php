@@ -2,59 +2,47 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Aide sociale locale</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Aide Sociale</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #F8FAFC;
-            color: #0F172A;
-        }
-        header {
-            background: #1E3A8A;
-            color: white;
-            padding: 15px;
-        }
-        footer {
-            background: #DBEAFE;
-            padding: 10px;
-            text-align: center;
-            font-size: 14px;
-            margin-top: 40px;
-        }
-        .container {
-            padding: 20px;
-        }
-        input {
-            padding: 8px;
-            width: 100%;
-            max-width: 300px;
-        }
-        button {
-            background: #2563EB;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+    <!-- Tailwind CSS via CDN pour dev rapide -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- JS classique -->
+    <script src="{{ asset('js/app.js') }}" defer></script>
 </head>
+
 <body>
 
-    <header>
-        <h2>Aide sociale locale</h2>
-    </header>
+    <header class="bg-white shadow-md">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/" class="text-2xl font-bold text-blue-600">Aide Sociale</a>
+        <div class="flex items-center space-x-4">
+            <a href="/cagnottes" class="text-gray-700 hover:text-blue-600">Cagnottes</a>
 
-        <main class="container">
-            @yield('content')
-        </main>
+            @guest
+                <a href="/login" class="text-gray-700 hover:text-blue-600">Connexion</a>
+                <a href="/register" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">S'inscrire</a>
+            @endguest
 
-    <footer>
-        © 2026 — Aide sociale locale
-    </footer>
+            @auth
+                @if(auth()->user()->role === 'donateur')
+                    <a href="/dashboard" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+                @endif
+                <form method="POST" action="/logout" class="inline">
+                    @csrf
+                    <button type="submit" class="text-red-500 hover:text-red-700">Déconnexion</button>
+                </form>
+            @endauth
+        </div>
+    </div>
+</header>
 
+    <main class="flex-grow container mx-auto px-6 py-8 min-h-[70vh]">
+    @yield('content')
+</main>
+<footer class="bg-white shadow-inner mt-10 py-6 text-center text-gray-500">
+    © {{ date('Y') }} Aide Sociale — Tous droits réservés
+</footer>
 </body>
 </html>
