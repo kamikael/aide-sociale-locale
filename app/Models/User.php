@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-// ✅ imports des modèles liés
+// ✅ imports des modèles liés ou utilisés dans les relations
 use App\Models\Don;
 use App\Models\Role;
 use App\Models\Cagnotte;
