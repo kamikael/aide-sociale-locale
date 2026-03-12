@@ -12,7 +12,10 @@ class MobileMoneyProvider extends Model
 
     protected $fillable = [
         'name',
+         'code',
         'api_base_url',
+        'country_iso',
+        'is_active',
     ];
 
     protected $casts = [
@@ -26,5 +29,10 @@ class MobileMoneyProvider extends Model
     public function paiements(): HasMany
     {
         return $this->hasMany(Paiement::class, 'provider_id');
+    }
+
+     public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }

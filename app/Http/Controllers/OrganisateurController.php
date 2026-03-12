@@ -7,46 +7,59 @@ use Illuminate\Support\Facades\Auth;
 
 class OrganisateurController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Dashboard Organisateur
-    |--------------------------------------------------------------------------
-    */
     public function dashboard()
     {
         $user = Auth::user();
 
-        $cagnottes = Cagnotte::where('organisateur_id', $user->id);
+        $isValidated = $user->status === 'active';
 
-        $nombreCagnottes = $cagnottes->count();
+        $latestDocument = $user->organisationDocuments()
+            ->latest()
+            ->first();
 
-        $montantTotalCollecte = $cagnottes->sum('collected_amount');
+        $cagnottes = collect();
+
+        $nombreCagnottes = 0;
+        $totalCollected = 0;
+        $totalTarget = 0;
+
+        if ($isValidated) {
+
+            $cagnottes = $user->cagnottes()
+                ->latest()
+                ->get();
+
+            $nombreCagnottes = $cagnottes->count();
+
+            $totalCollected = $cagnottes->sum('collected_amount');
+
+            $totalTarget = $cagnottes->sum('target_amount');
+        }
 
         return view('organisateur.dashboard', compact(
+            'user',
+            'isValidated',
+            'latestDocument',
+            'cagnottes',
             'nombreCagnottes',
-            'montantTotalCollecte'
+            'totalCollected',
+            'totalTarget'
         ));
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Liste des cagnottes de l'organisateur
-    |--------------------------------------------------------------------------
-    */
+
     public function mesCagnottes()
     {
-        $cagnottes = Cagnotte::where('organisateur_id', Auth::id())
+        $user = Auth::user();
+
+        $cagnottes = $user->cagnottes()
             ->latest()
             ->paginate(10);
 
         return view('organisateur.mes_cagnottes', compact('cagnottes'));
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Supprimer une cagnotte
-    |--------------------------------------------------------------------------
-    */
+
     public function destroyCagnotte(Cagnotte $cagnotte)
     {
         $this->authorize('delete', $cagnotte);
@@ -55,4 +68,32 @@ class OrganisateurController extends Controller
 
         return back()->with('success', 'Cagnotte supprimée avec succès.');
     }
+
+
+    public function historique()
+{
+    $user = Auth::user();
+
+    if ($user->status !== 'active') {
+        return redirect()
+            ->route('organisateur.dashboard')
+            ->with('error', 'Votre compte doit être validé.');
+    }
+
+    $cagnottes = $user->cagnottes()
+        ->latest()
+        ->get();
+
+    $totalCollected = $cagnottes->sum('collected_amount');
+
+    $totalTarget = $cagnottes->sum('target_amount');
+
+    return view('organisateur.historique', [
+        'cagnottes' => $cagnottes,
+        'totalCollected' => $totalCollected,
+        'totalTarget' => $totalTarget,
+    ]);
+}
+
+
 }

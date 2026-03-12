@@ -15,6 +15,10 @@ return new class extends Migration
     $table->id();
     $table->string('name');
     $table->string('api_base_url')->nullable();
+   $table->string('code')->unique()->after('name');
+    $table->string('country_iso')->default('bj')->after('code');
+     $table->boolean('is_active')->default(true)->after('country_iso');
+    
     $table->timestamps();
 });
 

@@ -28,11 +28,11 @@ class WebhookSignatureTest extends TestCase
             ]
         ]);
 
-        $signature = hash_hmac(
-            'sha256',
-            $payload,
-            $this->secret
-        );
+        // FedaPay signe "timestamp.payload" et met le tout dans le header
+        $timestamp = time();
+        $signedPayload = $timestamp . '.' . $payload;
+        $signature = hash_hmac('sha256', $signedPayload, $this->secret);
+        $header = "t={$timestamp},s={$signature}";
 
         $response = $this->call(
             'POST',
@@ -41,7 +41,7 @@ class WebhookSignatureTest extends TestCase
             [],
             [],
             [
-                'HTTP_X_FEDAPAY_SIGNATURE' => $signature,
+                'HTTP_X_FEDAPAY_SIGNATURE' => $header,
                 'CONTENT_TYPE' => 'application/json',
             ],
             $payload

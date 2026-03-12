@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('cagnottes', function (Blueprint $table) {
             $table->id();
+            $table->string('slug')->unique();
 
             $table->foreignId('organisateur_id')
                 ->constrained('users')

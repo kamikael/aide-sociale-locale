@@ -12,12 +12,15 @@ class Paiement extends Model
 
 use HasFactory;
     protected $fillable = [
+        'user_id',
+        'cagnotte_id',
         'provider_id',
         'transaction_reference',
         'montant',
         'commission_amount',
         'status',
         'paid_at',
+        'phone_number',
     ];
 
     protected $casts = [

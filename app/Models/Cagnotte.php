@@ -15,6 +15,7 @@ use HasFactory;
     protected $fillable = [
         'organisateur_id',
         'title',
+        'slug',
         'description',
         'image_path',
         'video_url',
@@ -36,7 +37,7 @@ use HasFactory;
     |--------------------------------------------------------------------------
     */
 
-    public function organisateur(): BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'organisateur_id');
     }
@@ -45,6 +46,12 @@ use HasFactory;
     {
         return $this->hasMany(Don::class);
     }
+
+    public function organisateur()
+{
+    return $this->belongsTo(User::class, 'organisateur_id');
+}
+
 
     /*
     |--------------------------------------------------------------------------

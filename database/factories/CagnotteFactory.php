@@ -10,7 +10,8 @@ class CagnotteFactory extends Factory
     public function definition(): array
     {
         return [
-            'organisateur_id' => User::factory(),
+            'organisateur_id' => null,
+            'slug' => $this->faker->unique()->slug,
             'title' => $this->faker->sentence,
             'description' => $this->faker->paragraph,
             'image_path' => null,

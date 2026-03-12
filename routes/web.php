@@ -9,6 +9,8 @@ use App\Http\Controllers\OrganisateurController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CagnotteController;
 use App\Http\Controllers\OrganisationDocumentController;
+use App\Http\Controllers\DonController;
+use App\Http\Controllers\PaiementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,31 +19,35 @@ use App\Http\Controllers\OrganisationDocumentController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
+
+Route::get('/cagnottes/{slug}', [CagnotteController::class, 'show'])
+    ->name('cagnottes.show');
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD REDIRECTION (Breeze compatibility)
+| DASHBOARD REDIRECTION
 |--------------------------------------------------------------------------
+|
+| On ne met pas "active" ici pour éviter les boucles de redirection
+| entre /app et /verify-email.
+|
 */
 
-Route::middleware(['auth', 'verified', 'active'])
-    ->get('/dashboard', function () {
+Route::middleware(['auth', 'verified'])->get('/app', function () {
+    $user = Auth::user();
 
-        $user = Auth::user();
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
 
-        if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
-        }
+    if ($user->isOrganisateur()) {
+        return redirect()->route('organisateur.dashboard');
+    }
 
-        if ($user->isOrganisateur()) {
-            return redirect()->route('organisateur.dashboard');
-        }
-
-        return redirect()->route('donateur.dashboard');
-    })
-    ->name('dashboard');
+    return redirect()->route('donateur.feed');
+})->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -49,52 +55,64 @@ Route::middleware(['auth', 'verified', 'active'])
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'active'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | 🔵 DONATEUR
+    | DONATEUR
     |--------------------------------------------------------------------------
+    |
+    | Ici on garde "active" car un donateur doit être actif pour accéder
+    | à son espace et faire des dons.
+    |
     */
+
     Route::prefix('donateur')
-        ->middleware('role:donateur')
+        ->middleware(['role:donateur', 'active'])
         ->name('donateur.')
         ->group(function () {
 
-            Route::get('/dashboard', [DonateurController::class, 'dashboard'])
-                ->name('dashboard');
+            Route::get('/cagnottes', [DonateurController::class, 'feed'])
+                ->name('feed');
 
             Route::get('/historique', [DonateurController::class, 'historique'])
                 ->name('historique');
+
+            Route::get('/dons/create/{cagnotte}', [DonController::class, 'create'])
+                ->name('dons.create');
+
+            Route::post('/dons/create/{cagnotte}', [DonController::class, 'store'])
+                ->name('dons.store');
         });
 
     /*
     |--------------------------------------------------------------------------
-    | 🟠 ORGANISATEUR
+    | ORGANISATEUR
     |--------------------------------------------------------------------------
+    |
+    | On ne met pas "active" ici si tu veux qu'un organisateur pending
+    | puisse accéder à son dashboard et envoyer ses documents.
+    |
     */
-    Route::prefix('organisateur')
-        ->middleware(['role:organisateur'])
-        ->name('organisateur.')
-        ->group(function () {
 
-            Route::get('/dashboard', [OrganisateurController::class, 'dashboard'])
-                ->name('dashboard');
+   Route::prefix('organisateur')
+    ->middleware('role:organisateur')
+    ->name('organisateur.')
+    ->group(function () {
 
-            Route::get('/mes-cagnottes', [OrganisateurController::class, 'mesCagnottes'])
-                ->name('cagnottes');
+        Route::get('/dashboard', [OrganisateurController::class, 'dashboard'])
+            ->name('dashboard');
 
-            Route::post('/documents', [OrganisationDocumentController::class, 'store'])
-                ->name('documents.store');
-        });
+        Route::get('/mes-cagnottes', [OrganisateurController::class, 'mesCagnottes'])
+            ->name('cagnottes');
 
-    /*
-    |--------------------------------------------------------------------------
-    | CAGNOTTES (Organisateur validé uniquement)
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware(['role:organisateur', 'organisateur.validated'])
-        ->group(function () {
+        Route::get('/historique', [OrganisateurController::class, 'historique'])
+            ->name('historique');
+
+        Route::post('/documents', [OrganisationDocumentController::class, 'store'])
+            ->name('documents.store');
+
+        Route::middleware('organisateur.validated')->group(function () {
 
             Route::get('/cagnottes/create', [CagnotteController::class, 'create'])
                 ->name('cagnottes.create');
@@ -112,13 +130,16 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
                 ->name('cagnottes.destroy');
         });
 
+    });
+
     /*
     |--------------------------------------------------------------------------
-    | 🔴 ADMIN
+    | ADMIN
     |--------------------------------------------------------------------------
     */
+
     Route::prefix('admin')
-        ->middleware('role:admin')
+        ->middleware(['role:admin', 'active'])
         ->name('admin.')
         ->group(function () {
 
@@ -134,30 +155,28 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
             Route::post('/organisateurs/{user}/reject', [AdminController::class, 'reject'])
                 ->name('organisateur.reject');
 
-            Route::post('/documents/{document}/approve', 
-                [OrganisationDocumentController::class, 'approve'])
+            Route::post('/documents/{document}/approve', [OrganisationDocumentController::class, 'approve'])
                 ->name('documents.approve');
 
-            Route::post('/documents/{document}/reject', 
-                [OrganisationDocumentController::class, 'reject'])
+            Route::post('/documents/{document}/reject', [OrganisationDocumentController::class, 'reject'])
                 ->name('documents.reject');
+
+            Route::get('/documents/{document}', [OrganisationDocumentController::class, 'show'])
+                ->name('documents.show');
         });
 });
 
 /*
 |--------------------------------------------------------------------------
-| PROFILE (Breeze)
+| PROFILE
 |--------------------------------------------------------------------------
 */
 
-
-
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
 });
 
 require __DIR__.'/auth.php';
-
-require __DIR__.'/api.php';

@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Don;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Http\Request;
+use App\Models\Cagnotte;
 class DonateurController extends Controller
 {
 
@@ -51,4 +52,37 @@ class DonateurController extends Controller
 
         return view('donateur.historique', compact('dons'));
     }
+
+
+   public function feed(Request $request)
+{
+    $query = Cagnotte::query()
+        ->with('user')
+        ->active();
+
+    // 🔍 Recherche
+    if ($request->filled('search')) {
+        $query->where('title', 'like', '%' . $request->search . '%');
+    }
+
+    // 🔽 Tri
+    switch ($request->get('sort')) {
+        case 'popular':
+            $query->orderBy('collected_amount', 'desc');
+            break;
+
+        case 'goal':
+            $query->orderBy('goal_amount', 'desc');
+            break;
+
+        default:
+            $query->latest();
+            break;
+    }
+
+    $cagnottes = $query->paginate(9)->withQueryString();
+
+    return view('donateur.feed', compact('cagnottes'));
+}
+    
 }

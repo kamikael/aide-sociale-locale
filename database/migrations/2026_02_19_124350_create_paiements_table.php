@@ -14,6 +14,10 @@ return new class extends Migration
             $table->foreignId('provider_id')
                 ->constrained('mobile_money_providers')
                 ->cascadeOnDelete();
+                
+            $table->string('phone_number')->nullable();    
+            $table->foreignId('user_id')->after('id')->constrained()->cascadeOnDelete();
+            $table->foreignId('cagnotte_id')->after('user_id')->constrained()->cascadeOnDelete();    
 
             $table->string('transaction_reference')->unique();
 

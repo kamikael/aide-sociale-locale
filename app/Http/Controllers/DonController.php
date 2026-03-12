@@ -16,24 +16,25 @@ class DonController extends Controller
     public function store(Request $request, Cagnotte $cagnotte, PaiementService $paiementService)
     {
         $request->validate([
-            'montant' => 'required|numeric|min:100',
+            'phone_number' => 'required|string|min:8',
+            'montant' => 'required|numeric|min:100', // Minimum 1000 FCFA
+             'provider_id' => 'required|exists:mobile_money_providers,id',
         ]);
+        
+        if ($cagnotte->user_id === Auth::id()) {
+    abort(403, 'Vous ne pouvez pas faire un don à votre propre cagnotte.');
+}
 
-        $provider = MobileMoneyProvider::first(); // FedaPay agrégateur
 
         $paiement = Paiement::create([
-            'provider_id' => $provider->id,
+            'provider_id' => $request->provider_id,
+            'user_id' => Auth::id(),
+            'cagnotte_id' => $cagnotte->id,
             'transaction_reference' => Str::uuid(),
             'montant' => $request->montant,
             'commission_amount' => 0,
             'status' => 'pending',
-        ]);
-
-        $don = Don::create([
-            'donateur_id' => Auth::id(),
-            'cagnotte_id' => $cagnotte->id,
-            'paiement_id' => $paiement->id,
-            'montant' => $request->montant,
+             'phone_number' => $request->phone_number, // 🔥 IMPORTANT
         ]);
 
         $checkoutUrl = $paiementService->createCheckout(
@@ -43,4 +44,17 @@ class DonController extends Controller
 
         return redirect($checkoutUrl);
     }
+
+
+
+ public function create(Cagnotte $cagnotte)
+{
+    if ($cagnotte->user_id === auth()->id()) {
+        abort(403, 'Vous ne pouvez pas faire un don à votre propre cagnotte.');
+    }
+
+    $providers = MobileMoneyProvider::all();
+
+    return view('donateur.dons.create', compact('cagnotte', 'providers'));
+}
 }
