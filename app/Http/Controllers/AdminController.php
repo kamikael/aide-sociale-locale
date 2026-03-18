@@ -20,7 +20,9 @@ class AdminController extends Controller
     */
     public function dashboard()
     {
+        
         // Total dons validés
+
     $totalDons = Don::whereHas('paiement', function ($q) {
         $q->where('status', 'success');
     })->sum('montant');
@@ -80,7 +82,17 @@ class AdminController extends Controller
         if (!$user->isOrganisateur()) {
             abort(403);
         }
+     
 
+
+               
+
+
+
+
+
+
+    
         $user->update([
             'status' => 'active',
         ]);

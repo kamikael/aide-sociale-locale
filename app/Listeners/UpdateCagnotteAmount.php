@@ -23,4 +23,5 @@ class UpdateCagnotteAmount
             'rate_percentage' => $commissionRate,
         ]);
     }
+
 }
