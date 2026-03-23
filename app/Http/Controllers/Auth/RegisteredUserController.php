@@ -9,6 +9,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 
 class RegisteredUserController extends Controller
@@ -38,10 +39,25 @@ class RegisteredUserController extends Controller
             
         ]);
 
-        event(new Registered($user));
+        $flashMessage = [
+            'success' => 'Compte créé avec succès. Vérifiez votre email.',
+        ];
+
+        try {
+            event(new Registered($user));
+        } catch (\Throwable $e) {
+            Log::error('Erreur envoi email de verification apres inscription', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'message' => $e->getMessage(),
+            ]);
+
+            $flashMessage['warning'] = 'Compte créé, mais l\'email de vérification n\'a pas pu être envoyé pour le moment.';
+        }
+
         Auth::login($user);
 
         return redirect()->route('verification.notice')
-            ->with('success', 'Compte créé avec succès. Vérifiez votre email.');
+            ->with($flashMessage);
     }
 }
