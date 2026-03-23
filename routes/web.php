@@ -23,7 +23,19 @@ Route::get('/', function () {
 });
 
 Route::get('/cagnottes/{slug}', [CagnotteController::class, 'show'])
-    ->name('cagnottes.show');
+    ->name('cagnottes.show');    
+
+Route::get('/paiement/callback', [PaiementController::class, 'redirectFromFedaPay'])
+    ->name('paiement.callback');
+
+Route::get('/paiement/success', [PaiementController::class, 'successPage'])
+    ->name('paiement.success');
+
+Route::get('/paiement/failed', [PaiementController::class, 'failedPage'])
+    ->name('paiement.failed');
+
+Route::get('/paiement/pending', [PaiementController::class, 'pendingPage'])
+    ->name('paiement.pending');
 
 /*
 |--------------------------------------------------------------------------
