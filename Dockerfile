@@ -4,6 +4,10 @@ FROM php:8.2-cli
 COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# ── Node.js 20 (pour Vite) ─────────────────────────────────────────────────────
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
 # ── Dépendances système ────────────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -58,6 +62,9 @@ RUN composer install \
     --no-scripts \
     --no-progress
 
+# ── Installation des dépendances JS et build Vite ─────────────────────────────
+RUN npm ci && npm run build && rm -rf node_modules
+
 # ── Préparation des répertoires, SQLite et permissions ────────────────────────
 RUN mkdir -p \
         database \
@@ -68,7 +75,7 @@ RUN mkdir -p \
         storage/app/public \
         bootstrap/cache \
     && touch database/database.sqlite \
-    && chmod -R 775 storage bootstrap/cache database \
+    && chmod -R 777 storage bootstrap/cache database \
     && chown -R root:root storage bootstrap/cache database
 
 # ── Symlink storage au build ───────────────────────────────────────────────────
@@ -82,7 +89,6 @@ CMD ["sh", "-c", "\
     php artisan config:clear && \
     php artisan config:cache && \
     php artisan route:clear && \
-    php artisan route:cache && \
     php artisan view:clear && \
     php artisan migrate --force && \
     php artisan serve --host=0.0.0.0 --port=${PORT:-10000} \
